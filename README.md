@@ -13,8 +13,6 @@
 
 **The first open-source framework unifying Quantum Key Distribution (QKD) security with Variational Quantum Circuit (VQC) intelligence for truly privacy-preserving distributed machine learning.**
 
-[📖 Documentation](https://quantumshield-fl.readthedocs.io) · [🔬 Research Paper](https://arxiv.org/abs/xxxx.xxxxx) · [🚀 Quick Start](#-quick-start) · [🎯 Demo](#-live-demo) · [🤝 Contribute](#-contributing)
-
 </div>
 
 ---
@@ -38,46 +36,156 @@ Modern federated learning suffers from two critical vulnerabilities:
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Detailed System Architecture
+
+QuantumShield-FL couples information-theoretic quantum communication physics with parameterized quantum machine learning and decentralized optimization.
+
+### End-to-End System Topology
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     QuantumShield-FL System                     │
-│                                                                 │
-│  ┌──────────────┐   QKD Channel   ┌──────────────────────────┐ │
-│  │   Client A   │◄───────────────►│   Federated Server       │ │
-│  │  ┌────────┐  │  Encrypted      │   ┌──────────────────┐   │ │
-│  │  │  VQC   │  │  Updates        │   │QuantumSecureAgg. │   │ │
-│  │  │ Model  │  │                 │   │  FedAvg / FedProx│   │ │
-│  │  └────────┘  │                 │   └──────────────────┘   │ │
-│  │  Local Data  │                 │   Global VQC Model       │ │
-│  └──────────────┘                 └──────────────────────────┘ │
-│                                             ▲                   │
-│  ┌──────────────┐   BB84/E91 QKD            │                   │
-│  │   Client B   │◄──────────────────────────┘                   │
-│  │  ┌────────┐  │                                               │
-│  │  │  QNN   │  │  ┌─────────────────────────────────────────┐ │
-│  │  │ Model  │  │  │           QKD Security Layer            │ │
-│  │  └────────┘  │  │  • BB84 Protocol (prepare-and-measure)  │ │
-│  │  Local Data  │  │  • E91 Protocol (entanglement-based)    │ │
-│  └──────────────┘  │  • QBER Monitoring (<11% threshold)     │ │
-│                    │  • Privacy Amplification (SHA-256)       │ │
-│  ┌──────────────┐  │  • AES-256 symmetric encryption         │ │
-│  │   Client N   │  └─────────────────────────────────────────┘ │
-│  └──────────────┘                                               │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                     QuantumShield-FL Ecosystem                                   │
+│                                                                                                  │
+│   ┌──────────────────────────────────────────────────────────────────────────────────────────┐   │
+│   │                                   Federated Server Node                                  │   │
+│   │                                                                                          │   │
+│   │  ┌──────────────────────┐    ┌─────────────────────────┐    ┌─────────────────────────┐  │   │
+│   │  │   Global VQC Model   │◄───│ QuantumSecureAggregator │◄───│   Decryption Engine     │  │   │
+│   │  │  θ_global = [θ1..θD] │    │ (FedAvg / FedProx / BFT)│    │ (AES-256-GCM / Key Pool)│  │   │
+│   │  └──────────┬───────────┘    └─────────────────────────┘    └────────────▲────────────┘  │   │
+│   │             │                                                            │               │   │
+│   └─────────────┼────────────────────────────────────────────────────────────┼───────────────┘   │
+│                 │ Broadcast Parameters θ_global                              │ Encrypted Updates │
+│                 │ (Classical Public Channel)                                 │ {Δθ_k}_K_enc      │
+│                 ▼                                                            │                   │
+│   ┌──────────────────────────────────────────────────────────────────────────┴───────────────┐   │
+│   │                               Quantum Channel & Key Pool                                 │   │
+│   │                                                                                          │   │
+│   │       Alice (Client k)  ────[ Quantum Channel (Photons / Bell Pairs) ]────►  Bob (Server) │   │
+│   │             │                                                                │           │   │
+│   │      ┌──────┴────────────────────────────────────────────────────────────────┴─────┐     │   │
+│   │      │  QKD Layer: BB84 Protocol or E91 Entanglement-based (CHSH Bell Test)       │     │   │
+│   │      │  Sifting ➔ Error Correction ➔ QBER Check (<11%) ➔ Privacy Amplification    │     │   │
+│   │      │  Shared Symmetric Key K_shared established with Information-Theoretic Sec  │     │   │
+│   │      └─────────────────────────────────────────────────────────────────────────────┘     │   │
+│   └──────────────────────────────────────────────────────────────────────────────────────────┘   │
+│                 ▲                                                            ▲                   │
+│                 │                                                            │                   │
+│   ┌─────────────┴────────────────────────────┐ ┌─────────────────────────────┴───────────────┐   │
+│   │           Federated Client A             │ │           Federated Client B                 │   │
+│   │                                          │ │                                              │   │
+│   │ ┌──────────────────────────────────────┐ │ │ ┌──────────────────────────────────────────┐ │   │
+│   │ │ Private Dataset D_A (Classical X, y) │ │ │ │ Private Dataset D_B (Classical X, y)     │ │   │
+│   │ └──────────────────┬───────────────────┘ │ │ └───────────────────┬──────────────────────┘ │   │
+│   │                    ▼                     │ │                     ▼                        │   │
+│   │ ┌──────────────────────────────────────┐ │ │ ┌──────────────────────────────────────────┐ │   │
+│   │ │ Quantum State Encoder                │ │ │ │ Quantum State Encoder                    │ │   │
+│   │ │ • Angle Encoding: |ψ(x)⟩ = ⊗ R_y(x)  │ │ │ │ • IQP / Amplitude Feature Mapping        │ │   │
+│   │ └──────────────────┬───────────────────┘ │ │ └───────────────────┬──────────────────────┘ │   │
+│   │                    ▼                     │ │                     ▼                        │   │
+│   │ ┌──────────────────────────────────────┐ │ │ ┌──────────────────────────────────────────┐ │   │
+│   │ │ Parameterized Quantum Circuit (PQC)  │ │ │ │ Parameterized Quantum Circuit (PQC)      │ │   │
+│   │ │ • Hardware-Efficient Entangling Layer│ │ │ │ • Strongly Entangling Ansatz Layers      │ │   │
+│   │ └──────────────────┬───────────────────┘ │ │ └───────────────────┬──────────────────────┘ │   │
+│   │                    ▼                     │ │                     ▼                        │   │
+│   │ ┌──────────────────────────────────────┐ │ │ ┌──────────────────────────────────────────┐ │   │
+│   │ │ Parameter-Shift Rule Gradient Engine │ │ │ │ Parameter-Shift Rule Gradient Engine     │ │   │
+│   │ │ ∂L/∂θ_i = [L(θ + π/2) - L(θ - π/2)]/2│ │ │ │ ∂L/∂θ_i = [L(θ + π/2) - L(θ - π/2)]/2    │ │   │
+│   │ └──────────────────┬───────────────────┘ │ │ └───────────────────┬──────────────────────┘ │   │
+│   │                    ▼                     │ │                     ▼                        │   │
+│   │ ┌──────────────────────────────────────┐ │ │ ┌──────────────────────────────────────────┐ │   │
+│   │ │ Local Differential Privacy (DP)      │ │ │ │ Local Differential Privacy (DP)          │ │   │
+│   │ │ Δθ~ = Clip(Δθ, C) + N(0, σ² I)       │ │ │ │ Δθ~ = Clip(Δθ, C) + N(0, σ² I)           │ │   │
+│   │ └──────────────────┬───────────────────┘ │ │ └───────────────────┬──────────────────────┘ │   │
+│   │                    ▼                     │ │                     ▼                        │   │
+│   │ ┌──────────────────────────────────────┐ │ │ ┌──────────────────────────────────────────┐ │   │
+│   │ │ Quantum Key Encryption               │ │ │ │ Quantum Key Encryption                   │ │   │
+│   │ │ Ciphertext = AES-256-GCM(Δθ~, K_QKD) │ │ │ │ Ciphertext = AES-256-GCM(Δθ~, K_QKD)     │ │   │
+│   │ └──────────────────────────────────────┘ │ │ └──────────────────────────────────────────┘ │   │
+│   └──────────────────────────────────────────┘ └──────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Components
+---
 
-| Component | Description | Algorithm |
-|-----------|-------------|-----------|
-| **QKD Module** | Quantum key generation & distribution | BB84, E91 |
-| **VQC** | Variational Quantum Classifier | Hardware-efficient ansatz |
-| **QNN** | Quantum Neural Network | Hybrid quantum-classical |
-| **QSVM** | Quantum Support Vector Machine | Quantum kernel methods |
-| **FedServer** | Secure aggregation coordinator | FedAvg, FedProx |
-| **DP Engine** | Differential privacy noise | Gaussian, Laplace, RDP |
+### Layer-by-Layer Architectural Breakdown
+
+```mermaid
+flowchart TD
+    subgraph DataPrep ["1. Quantum Encoding Layer"]
+        D["Classical Feature Vector x ∈ ℝⁿ"] --> Norm["Feature Normalization / MinMax"]
+        Norm --> Enc{"Encoding Scheme"}
+        Enc -->|Angle| AE["Angle Encoding: |x⟩ = ⊗ⱼ (cos(xⱼ/2)|0⟩ + sin(xⱼ/2)|1⟩)"]
+        Enc -->|Amplitude| AmpE["Amplitude Encoding: |x⟩ = ∑ⱼ xⱼ |j⟩"]
+        Enc -->|IQP| IQPE["IQP Non-Linear Kernel Map: U_IQP(x)"]
+    end
+
+    subgraph QuantumModel ["2. Variational Quantum Classifier (VQC)"]
+        AE --> Ansatz["Parameterized Ansatz U(θ)"]
+        AmpE --> Ansatz
+        IQPE --> Ansatz
+        Ansatz --> Entangle["Entangling Layer: CNOT / CZ Ring Topology"]
+        Entangle --> Rot["Single-Qubit Rotations: R_x(θ), R_y(θ), R_z(θ)"]
+        Rot --> Meas["Pauli-Z Observable Measurement: ⟨Z⟩"]
+        Meas --> Softmax["Classical Projection / Softmax ➔ ŷ"]
+    end
+
+    subgraph GradientOpt ["3. Quantum Gradient Optimization"]
+        Softmax --> Loss["Cross-Entropy Loss L(ŷ, y)"]
+        Loss --> PSR["Exact Analytical Gradients (Parameter-Shift Rule):<br/>∂L/∂θ = (L(θ + s) - L(θ - s)) / (2 sin s), where s = π/2"]
+        PSR --> Adam["Local Optimizer (Adam with β₁, β₂, ε)"]
+        Adam --> LocalDelta["Local Parameter Update Δθ = θ_local - θ_global"]
+    end
+
+    subgraph PrivacySec ["4. Privacy & Quantum Key Security"]
+        LocalDelta --> Clip["Norm Clipping: min(1, C / ||Δθ||₂)"]
+        Clip --> DPNoise["Add Calibrated Noise (Gaussian / Laplace): N(0, σ² C²)"]
+        DPNoise --> DPUpdate["Perturbed Update Δθ~"]
+        DPUpdate --> QKDPrep["QKDSession Buffer Check"]
+        
+        QKDGen["QKD Protocol (BB84 or E91 Bell CHSH)"] --> Sift["Sifting & Error Correction"]
+        Sift --> QBER{"QBER < 11%?"}
+        QBER -->|No: Eve Detected| Abort["Abort & Rerun Key Exchange"]
+        QBER -->|Yes| Amp["Privacy Amplification (SHA-256)"]
+        Amp --> SharedKey["32-Byte Secret Shared Key K_QKD"]
+        
+        SharedKey --> AES["AES-256-GCM Authenticated Encryption"]
+        QKDPrep --> AES
+        AES --> Ciphertext["Encrypted Payload {Ciphertext, Nonce, Tag}"]
+    end
+
+    subgraph Aggregation ["5. Federated Aggregation & Distribution"]
+        Ciphertext --> Net["Transmit over Network"]
+        Net --> ServerRecv["Server Ingestion & Decryption with K_QKD"]
+        ServerRecv --> SecAgg["QuantumSecureAggregator"]
+        SecAgg --> AggAlgo{"Strategy"}
+        AggAlgo -->|FedAvg| FA["Weighted Average: θ_global += ∑ (n_k/N) Δθ_k"]
+        AggAlgo -->|FedProx| FP["Proximal Term Penalization: ||θ - θ_global||²"]
+        FA --> NewGlobal["Updated Global Parameters θ_global^(t+1)"]
+        FP --> NewGlobal
+        NewGlobal --> Broadcast["Broadcast θ_global to Participating Clients"]
+    end
+```
+
+---
+
+### Key Architectural Modules
+
+| Component | Module Path | Functionality & Mathematical Foundations |
+|---|---|---|
+| **Quantum State Simulator** | [`src/quantum/core/quantum_state.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/quantum/core/quantum_state.py) | Complex statevector simulation ($\mathbb{C}^{2^n}$), Bell states ($|\Phi^\pm\rangle, |\Psi^\pm\rangle$), GHZ states, partial trace, and von Neumann entanglement entropy $S(\rho_A) = -\text{Tr}(\rho_A \log_2 \rho_A)$. |
+| **Circuit Simulator** | [`src/quantum/core/circuit_builder.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/quantum/core/circuit_builder.py) | Unitary operator construction for 1-qubit ($H, X, Y, Z, R_x, R_y, R_z$) and multi-qubit ($CNOT, CZ, SWAP, Toffoli$) gates. |
+| **BB84 QKD Protocol** | [`src/quantum/qkd/bb84.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/quantum/qkd/bb84.py) | Conjugate coding in rectilinear ($+$) and diagonal ($\times$) bases, basis sifting, QBER calculation, Eve intercept-resend detection, and SHA-256 privacy amplification. |
+| **E91 QKD Protocol** | [`src/quantum/qkd/e91.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/quantum/qkd/e91.py) | Entangled photon pair distribution, CHSH Bell test verifying $|S| \approx 2\sqrt{2} \approx 2.828 > 2.0$ (Tsirelson bound) to guarantee untampered eavesdropper-free channel. |
+| **QKD Crypto Session** | [`src/quantum/qkd/session.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/quantum/qkd/session.py) | Key pool lifecycle management, automated key replenishment, and AES-256-GCM payload encryption/decryption. |
+| **Variational Quantum Classifier** | [`src/quantum/qml/vqc.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/quantum/qml/vqc.py) | Hardware-efficient parameterized ansatz, exact analytical gradients via Parameter-Shift Rule $\partial_\theta \langle H \rangle = \frac{1}{2}[\langle H \rangle_{\theta + \pi/2} - \langle H \rangle_{\theta - \pi/2}]$, Adam optimizer. |
+| **Quantum Encoders** | [`src/quantum/qml/encoders.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/quantum/qml/encoders.py) | Transforms classical feature vectors into quantum Hilbert space via Angle, Amplitude, IQP, or Basis encoding. |
+| **Federated Client** | [`src/federated/client.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/federated/client.py) | Local model updates, DP gradient clipping/perturbation, and QKD ciphertext transmission. |
+| **Federated Server** | [`src/federated/server.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/federated/server.py) | Client coordinator, round orchestration, client selection (uniform or loss-weighted), and global model evaluation. |
+| **Aggregator** | [`src/federated/aggregator.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/federated/aggregator.py) | Secure aggregation via FedAvg, FedProx (proximal drift damping), and quantum Byzantine-resilient aggregation. |
+| **Privacy Engine** | [`src/federated/privacy.py`](file:///C:/Users/sujal/.gemini/antigravity/scratch/quantumshield-fl/src/federated/privacy.py) | $(\epsilon, \delta)$-Differential Privacy, Gaussian/Laplace mechanisms, quantum depolarizing noise channel, Rényi DP accountant. |
+
+---
 
 ---
 

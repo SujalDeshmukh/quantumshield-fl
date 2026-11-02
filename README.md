@@ -1,11 +1,5 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/Quantum%20Computing-Research-blueviolet?style=for-the-badge&logo=atom" />
-<img src="https://img.shields.io/badge/Federated%20Learning-Privacy--Preserving-green?style=for-the-badge" />
-<img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python" />
-<img src="https://img.shields.io/github/actions/workflow/status/SujalDeshmukh/quantumshield-fl/ci.yml?style=for-the-badge&label=CI" />
-<img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" />
-<img src="https://img.shields.io/badge/arXiv-Research%20Paper-red?style=for-the-badge" />
 
 # ⚛️ QuantumShield-FL
 

@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+  # ─── QuantumShield-FL API Server ───────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: quantumshield-fl:latest
+    container_name: qsfl-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - QSFL_ENV=production
+      - QSFL_HOST=0.0.0.0
+      - QSFL_PORT=8000
+      - QSFL_LOG_LEVEL=INFO
+      - QSFL_SECRET_KEY=${QSFL_SECRET_KEY:-change-me-in-production}
+    volumes:
+      - experiments_data:/app/experiments
+      - ./logs:/app/logs
+    networks:
+      - qsfl-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - redis
+
+  # ─── Redis (for async task queue & caching) ──────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: qsfl-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - qsfl-net
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # ─── Prometheus Metrics ──────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: qsfl-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - qsfl-net
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+
+  # ─── Grafana Dashboard ───────────────────────────────────────────
+  grafana:
+    image: grafana/grafana:latest
+    container_name: qsfl-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - qsfl-net
+    depends_on:
+      - prometheus
+
+volumes:
+  experiments_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  qsfl-net:
+    driver: bridge

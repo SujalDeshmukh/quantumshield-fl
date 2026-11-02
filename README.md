@@ -3,7 +3,7 @@
 <img src="https://img.shields.io/badge/Quantum%20Computing-Research-blueviolet?style=for-the-badge&logo=atom" />
 <img src="https://img.shields.io/badge/Federated%20Learning-Privacy--Preserving-green?style=for-the-badge" />
 <img src="https://img.shields.io/badge/Python-3.9%2B-blue?style=for-the-badge&logo=python" />
-<img src="https://img.shields.io/github/actions/workflow/status/your-username/quantumshield-fl/ci.yml?style=for-the-badge&label=CI" />
+<img src="https://img.shields.io/github/actions/workflow/status/SujalDeshmukh/quantumshield-fl/ci.yml?style=for-the-badge&label=CI" />
 <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" />
 <img src="https://img.shields.io/badge/arXiv-Research%20Paper-red?style=for-the-badge" />
 
@@ -87,7 +87,7 @@ Modern federated learning suffers from two critical vulnerabilities:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/quantumshield-fl.git
+git clone https://github.com/SujalDeshmukh/quantumshield-fl.git
 cd quantumshield-fl
 
 # Create virtual environment
@@ -325,7 +325,7 @@ If you use QuantumShield-FL in your research, please cite:
   title  = {QuantumShield-FL: Quantum-Secured Federated Learning with Variational Quantum Circuits},
   author = {QuantumShield-FL Research Team},
   year   = {2024},
-  url    = {https://github.com/your-username/quantumshield-fl},
+  url    = {https://github.com/SujalDeshmukh/quantumshield-fl},
   note   = {arXiv:xxxx.xxxxx}
 }
 ```

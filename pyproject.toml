@@ -89,10 +89,10 @@ qsfl = "src.cli:main"
 qsfl-server = "src.api.app:start_server"
 
 [project.urls]
-Homepage = "https://github.com/your-username/quantumshield-fl"
+Homepage = "https://github.com/SujalDeshmukh/quantumshield-fl"
 Documentation = "https://quantumshield-fl.readthedocs.io"
-Repository = "https://github.com/your-username/quantumshield-fl"
-"Bug Tracker" = "https://github.com/your-username/quantumshield-fl/issues"
+Repository = "https://github.com/SujalDeshmukh/quantumshield-fl"
+"Bug Tracker" = "https://github.com/SujalDeshmukh/quantumshield-fl/issues"
 "Research Paper" = "https://arxiv.org/abs/xxxx.xxxxx"
 
 [tool.setuptools.packages.find]
